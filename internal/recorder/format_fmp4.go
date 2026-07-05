@@ -187,7 +187,7 @@ func (f *formatFMP4) initialize() bool {
 				}
 				track := addTrack(forma, codec)
 
-				firstReceived := false
+				var firstTime time.Time
 
 				f.ri.reader.OnData(
 					media,
@@ -216,11 +216,18 @@ func (f *formatFMP4) initialize() bool {
 							f.updateCodecParams()
 						}
 
-						if !firstReceived {
+						if firstTime.IsZero() {
+							firstTime = time.Now()
 							if !randomAccess {
 								return nil
 							}
-							firstReceived = true
+						} else if randomAccess || time.Since(firstTime) > 2*time.Second {
+							if !randomAccess {
+								f.ri.Log(logger.Warn, "no key frames received, recording may be unplayable")
+							}
+							firstTime = time.Time{}
+						} else {
+							return nil
 						}
 
 						var sampl fmp4.Sample
@@ -247,7 +254,7 @@ func (f *formatFMP4) initialize() bool {
 				}
 				track := addTrack(forma, codec)
 
-				firstReceived := false
+				var firstTime time.Time
 
 				f.ri.reader.OnData(
 					media,
@@ -299,11 +306,18 @@ func (f *formatFMP4) initialize() bool {
 							f.updateCodecParams()
 						}
 
-						if !firstReceived {
+						if firstTime.IsZero() {
+							firstTime = time.Now()
 							if !randomAccess {
 								return nil
 							}
-							firstReceived = true
+						} else if randomAccess || time.Since(firstTime) > 2*time.Second {
+							if !randomAccess {
+								f.ri.Log(logger.Warn, "no key frames received, recording may be unplayable")
+							}
+							firstTime = time.Time{}
+						} else {
+							return nil
 						}
 
 						return track.write(&formatFMP4Sample{
@@ -334,6 +348,7 @@ func (f *formatFMP4) initialize() bool {
 				}
 				track := addTrack(forma, codec)
 
+				var firstTime time.Time
 				var dtsExtractor *h265.DTSExtractor
 
 				f.ri.reader.OnData(
@@ -378,10 +393,21 @@ func (f *formatFMP4) initialize() bool {
 							f.updateCodecParams()
 						}
 
-						if dtsExtractor == nil {
+						if firstTime.IsZero() {
+							firstTime = time.Now()
 							if !randomAccess {
 								return nil
 							}
+						} else if randomAccess || time.Since(firstTime) > 2*time.Second {
+							if !randomAccess {
+								f.ri.Log(logger.Warn, "no key frames received, recording may be unplayable")
+							}
+							firstTime = time.Time{}
+						} else {
+							return nil
+						}
+
+						if dtsExtractor == nil {
 							dtsExtractor = &h265.DTSExtractor{}
 							dtsExtractor.Initialize()
 						}
@@ -417,6 +443,7 @@ func (f *formatFMP4) initialize() bool {
 				}
 				track := addTrack(forma, codec)
 
+				var firstTime time.Time
 				var dtsExtractor *h264.DTSExtractor
 
 				f.ri.reader.OnData(
@@ -454,10 +481,21 @@ func (f *formatFMP4) initialize() bool {
 							f.updateCodecParams()
 						}
 
-						if dtsExtractor == nil {
+						if firstTime.IsZero() {
+							firstTime = time.Now()
 							if !randomAccess {
 								return nil
 							}
+						} else if randomAccess || time.Since(firstTime) > 2*time.Second {
+							if !randomAccess {
+								f.ri.Log(logger.Warn, "no key frames received, recording may be unplayable")
+							}
+							firstTime = time.Time{}
+						} else {
+							return nil
+						}
+
+						if dtsExtractor == nil {
 							dtsExtractor = &h264.DTSExtractor{}
 							dtsExtractor.Initialize()
 						}
