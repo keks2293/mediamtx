@@ -447,6 +447,11 @@ func (f *formatFMP4) initialize() bool {
 
 							case h264.NALUTypeIDR:
 								randomAccess = true
+
+							case h264.NALUTypeSEI:
+								if h264.IsSEIRecoveryPoint(nalu) {
+									randomAccess = true
+								}
 							}
 						}
 
