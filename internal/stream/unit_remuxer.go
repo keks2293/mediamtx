@@ -100,6 +100,16 @@ func unitRemuxerH264(forma format.Format, payload unit.Payload) unit.Payload {
 					n += 2
 				}
 			}
+
+		case mch264.NALUTypeSEI:
+			if !isKeyFrame && mch264.IsSEIRecoveryPoint(nalu) {
+				isKeyFrame = true
+
+				// prepend parameters
+				if formatH264.SPS != nil && formatH264.PPS != nil {
+					n += 2
+				}
+			}
 		}
 		n++
 	}
