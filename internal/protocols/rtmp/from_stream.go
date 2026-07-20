@@ -168,29 +168,34 @@ func FromStream(
 								return nil
 							}
 
-							idrPresent := false
+							keyFramePresent := false
 							nonIDRPresent := false
 
 							for _, nalu := range u.Payload.(unit.PayloadH264) {
 								typ := h264.NALUType(nalu[0] & 0x1F)
 								switch typ {
 								case h264.NALUTypeIDR:
-									idrPresent = true
+									keyFramePresent = true
 
 								case h264.NALUTypeNonIDR:
 									nonIDRPresent = true
+
+								case h264.NALUTypeSEI:
+									if h264.IsSEIRecoveryPoint(nalu) {
+										keyFramePresent = true
+									}
 								}
 							}
 
-							// wait until we receive an IDR
+							// wait until we receive a key frame (IDR or SEI recovery point)
 							if videoDTSExtractor == nil {
-								if !idrPresent {
+								if !keyFramePresent {
 									return nil
 								}
 
 								videoDTSExtractor = &h264.DTSExtractor{}
 								videoDTSExtractor.Initialize()
-							} else if !idrPresent && !nonIDRPresent {
+							} else if !keyFramePresent && !nonIDRPresent {
 								return nil
 							}
 
